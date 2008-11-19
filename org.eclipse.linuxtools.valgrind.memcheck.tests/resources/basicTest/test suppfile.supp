@@ -1,0 +1,5 @@
+{
+	test
+	Memcheck:Value4
+	fun:*
+}
