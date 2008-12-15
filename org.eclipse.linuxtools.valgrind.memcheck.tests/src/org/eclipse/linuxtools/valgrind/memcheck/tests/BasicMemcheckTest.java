@@ -16,7 +16,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.linuxtools.valgrind.memcheck.MemcheckViewPart;
 import org.eclipse.linuxtools.valgrind.ui.ValgrindUIPlugin;
 
-public class BasicTest extends AbstractTest {
+public class BasicMemcheckTest extends AbstractMemcheckTest {
 	
 	@Override
 	protected void setUp() throws Exception {
