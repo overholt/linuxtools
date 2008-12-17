@@ -1,0 +1,7 @@
+2008-12-17  Andrew Overholt  <overholt@redhat.com>
+
+	* build.properties: Inital checkin.
+	* test.xml: Likewise.
+	* plugin.properties: Likewise.
+	* about.html: Likewise.
+	* META-INF/MANIFEST.MF: Likewise.
