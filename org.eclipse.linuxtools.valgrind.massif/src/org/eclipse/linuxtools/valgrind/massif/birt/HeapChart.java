@@ -11,8 +11,6 @@
  ***********************************************************************/
 package org.eclipse.linuxtools.valgrind.massif.birt;
 
-import org.eclipse.birt.chart.model.Chart;
-import org.eclipse.birt.chart.model.ChartWithAxes;
 import org.eclipse.birt.chart.model.attribute.AxisType;
 import org.eclipse.birt.chart.model.attribute.ChartDimension;
 import org.eclipse.birt.chart.model.attribute.FontDefinition;
@@ -46,99 +44,108 @@ import org.eclipse.linuxtools.valgrind.massif.MassifSnapshot.TimeUnit;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 
-public class ChartBuilder {
-	
+public class HeapChart extends ChartWithAxesImpl {
+
 	private static String[] byteUnits = { 
-		Messages.getString("ChartBuilder.B"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.KiB"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.MiB"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.GiB"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.TiB") //$NON-NLS-1$
-	};
+		Messages.getString("HeapChart.B"), //$NON-NLS-1$
+		Messages.getString("HeapChart.KiB"), //$NON-NLS-1$
+		Messages.getString("HeapChart.MiB"), //$NON-NLS-1$
+		Messages.getString("HeapChart.GiB"), //$NON-NLS-1$
+		Messages.getString("HeapChart.TiB") //$NON-NLS-1$
+	};	
 	private static String[] instrUnits = {
-		Messages.getString("ChartBuilder.i"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.Ki"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.Mi"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.Gi"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.Ti") //$NON-NLS-1$
+		Messages.getString("HeapChart.i"), //$NON-NLS-1$
+		Messages.getString("HeapChart.Ki"), //$NON-NLS-1$
+		Messages.getString("HeapChart.Mi"), //$NON-NLS-1$
+		Messages.getString("HeapChart.Gi"), //$NON-NLS-1$
+		Messages.getString("HeapChart.Ti") //$NON-NLS-1$
 	};
 	private static String[] secondUnits = {
-		Messages.getString("ChartBuilder.ms"), //$NON-NLS-1$
-		Messages.getString("ChartBuilder.s") //$NON-NLS-1$
+		Messages.getString("HeapChart.ms"), //$NON-NLS-1$
+		Messages.getString("HeapChart.s") //$NON-NLS-1$
 	};
-	
+
 	protected static final int BYTE_MULT = 1024;
 	protected static final int BYTE_LIMIT = byteUnits.length - 1;
 	protected static final int INSTR_MULT = 1000;
 	protected static final int INSTR_LIMIT = instrUnits.length - 1;
 	protected static final int MS_MULT = 1000;
 	protected static final int MS_LIMIT = secondUnits.length - 1;
-	
+
 	protected static final int SCALING_THRESHOLD = 20;
-		
+
+	protected String xUnits;
+	protected String yUnits;
+
 	@SuppressWarnings("unchecked")
-	public static final Chart createLine(MassifSnapshot[] snapshots) {
+	public HeapChart(MassifSnapshot[] snapshots) {
 		TimeUnit timeUnit = snapshots[0].getUnit();
-		int xScaling = getXScaling(snapshots, timeUnit);
-		int xMultiplier =  getMultiplier(timeUnit);
-		int yScaling = getYScaling(snapshots);
-		
-		long xDiv = (long) Math.pow(xMultiplier, xScaling);
-		long yDiv = (long) Math.pow(BYTE_MULT, yScaling);
-		
+		long xScaling = getXScaling(snapshots, timeUnit);
+		long yScaling = getYScaling(snapshots);
+
 		double[] time = new double[snapshots.length];
 		double[] dataUseful = new double[snapshots.length];
 		double[] dataExtra = new double[snapshots.length];
+		double[] dataStacks = null;
+
+		boolean isStack = isStackProfiled(snapshots);
+		if (isStack) {
+			dataStacks = new double[snapshots.length];
+		}		
 		double[] dataTotal = new double[snapshots.length];
 		for (int i = 0; i < snapshots.length; i++) {
-			time[i] = snapshots[i].getTime() / xDiv;
-			dataUseful[i] = snapshots[i].getHeapBytes() / yDiv;
-			dataExtra[i] = snapshots[i].getHeapExtra() / yDiv;
+			time[i] = snapshots[i].getTime() / xScaling;
+			dataUseful[i] = snapshots[i].getHeapBytes() / yScaling;
+			dataExtra[i] = snapshots[i].getHeapExtra() / yScaling;
 			dataTotal[i] = dataUseful[i] + dataExtra[i];
+			if (isStack) {
+				dataStacks[i] = snapshots[i].getStacks() / yScaling;
+				dataStacks[i] += dataStacks[i];
+			}	
 		}
 
-		ChartWithAxes cwaLine = ChartWithAxesImpl.create();
-		cwaLine.setDimension(ChartDimension.TWO_DIMENSIONAL_LITERAL);
-		cwaLine.setType("Line Chart"); //$NON-NLS-1$
-		cwaLine.setSubType("Overlay"); //$NON-NLS-1$
+		initialize();
+		setDimension(ChartDimension.TWO_DIMENSIONAL_LITERAL);
+		setType("Line Chart"); //$NON-NLS-1$
+		setSubType("Overlay"); //$NON-NLS-1$
 
 		Font font = JFaceResources.getDialogFont();
 		FontData fd = font.getFontData()[0];
-		
+
 		// Title
-		FontDefinition titleFont = cwaLine.getTitle().getLabel().getCaption().getFont();
+		FontDefinition titleFont = getTitle().getLabel().getCaption().getFont();
 		titleFont.setName(fd.getName());
 		titleFont.setSize(fd.getHeight() + 2);
-		
+
 		// Plot
-		cwaLine.getBlock().setBackground(ColorDefinitionImpl.WHITE());
-		Plot p = cwaLine.getPlot();
+		getBlock().setBackground(ColorDefinitionImpl.WHITE());
+		Plot p = getPlot();
 		p.getClientArea().setBackground(
 				ColorDefinitionImpl.create(255, 255, 225));
 
 		// X-Axis
-		Axis xAxisPrimary = cwaLine.getPrimaryBaseAxes()[0];
+		Axis xAxisPrimary = getPrimaryBaseAxes()[0];
 		xAxisPrimary.setType(AxisType.LINEAR_LITERAL);
 		xAxisPrimary.getMajorGrid().setTickStyle(TickStyle.BELOW_LITERAL);
 		xAxisPrimary.getOrigin().setType(IntersectionType.VALUE_LITERAL);
-		xAxisPrimary.getTitle().getCaption().setValue(getScaledUnit(timeUnit, xScaling));
+		xAxisPrimary.getTitle().getCaption().setValue(xUnits);
 		xAxisPrimary.getTitle().setVisible(true);
-		
+
 		FontDefinition xAxisFont = xAxisPrimary.getTitle().getCaption().getFont();
 		xAxisFont.setName(fd.getName());
 		xAxisFont.setSize(fd.getHeight());
-		
+
 		xAxisFont = xAxisPrimary.getLabel().getCaption().getFont();
 		xAxisFont.setName(fd.getName());
 		xAxisFont.setSize(fd.getHeight());
-		
+
 		// Y-Axis
-		Axis yAxisPrimary = cwaLine.getPrimaryOrthogonalAxis(xAxisPrimary);
+		Axis yAxisPrimary = getPrimaryOrthogonalAxis(xAxisPrimary);
 		yAxisPrimary.getMajorGrid().setTickStyle(TickStyle.LEFT_LITERAL);
 		yAxisPrimary.getMajorGrid().getLineAttributes().setVisible(true);
-		yAxisPrimary.getTitle().getCaption().setValue(getScaledUnit(TimeUnit.BYTES, yScaling));
+		yAxisPrimary.getTitle().getCaption().setValue(yUnits);
 		yAxisPrimary.getTitle().setVisible(true);
-		
+
 		FontDefinition yAxisFont = yAxisPrimary.getTitle().getCaption().getFont();
 		yAxisFont.setName(fd.getName());
 		yAxisFont.setSize(fd.getHeight());
@@ -146,7 +153,7 @@ public class ChartBuilder {
 		yAxisFont = yAxisPrimary.getLabel().getCaption().getFont();
 		yAxisFont.setName(fd.getName());
 		yAxisFont.setSize(fd.getHeight());
-		
+
 		// Z-Axis
 		Axis zAxis = AxisImpl.create(Axis.ANCILLARY_BASE);
 		zAxis.setType(AxisType.LINEAR_LITERAL);
@@ -157,18 +164,22 @@ public class ChartBuilder {
 		xAxisPrimary.getAncillaryAxes().add(zAxis);
 
 		// Legend
-		Legend legend = cwaLine.getLegend();
+		Legend legend = getLegend();
 		legend.setPosition(Position.BELOW_LITERAL);
 		legend.setOrientation(Orientation.HORIZONTAL_LITERAL);
-		
+
 		FontDefinition legendFont = legend.getText().getFont();
 		legendFont.setName(fd.getName());
 		legendFont.setSize(fd.getHeight());
-		
+
 		// Data Set
 		NumberDataSet mainValues = NumberDataSetImpl.create(time);
 		NumberDataSet orthoValues1 = NumberDataSetImpl.create(dataUseful);
 		NumberDataSet orthoValues2 = NumberDataSetImpl.create(dataExtra);
+		NumberDataSet orthoValuesS = null;
+		if (isStack) {
+			orthoValuesS = NumberDataSetImpl.create(dataStacks);
+		}
 		NumberDataSet orthoValues3 = NumberDataSetImpl.create(dataTotal);
 
 		SampleData sd = DataFactory.eINSTANCE.createSampleData();
@@ -188,13 +199,21 @@ public class ChartBuilder {
 		sdOrthogonal2.setSeriesDefinitionIndex(1);
 		sd.getOrthogonalSampleData().add(sdOrthogonal2);
 
+		if (isStack) {
+			OrthogonalSampleData sdOrthogonalS = DataFactory.eINSTANCE
+			.createOrthogonalSampleData();
+			sdOrthogonalS.setDataSetRepresentation("");//$NON-NLS-1$
+			sdOrthogonalS.setSeriesDefinitionIndex(2);
+			sd.getOrthogonalSampleData().add(sdOrthogonalS);
+		}
+
 		OrthogonalSampleData sdOrthogonal3 = DataFactory.eINSTANCE
 		.createOrthogonalSampleData();
-		sdOrthogonal3.setDataSetRepresentation("Total Heap");//$NON-NLS-1$
-		sdOrthogonal3.setSeriesDefinitionIndex(2);
+		sdOrthogonal3.setDataSetRepresentation("");//$NON-NLS-1$
+		sdOrthogonal3.setSeriesDefinitionIndex(isStack ? 3 : 2);
 		sd.getOrthogonalSampleData().add(sdOrthogonal3);
 
-		cwaLine.setSampleData(sd);
+		setSampleData(sd);
 
 		// X-Series
 		Series seCategory = SeriesImpl.create();
@@ -213,7 +232,7 @@ public class ChartBuilder {
 			marker.setSize(3);
 		}
 		ls1.setPaletteLineColor(true);
-		ls1.setSeriesIdentifier(Messages.getString("ChartBuilder.Useful_Heap")); //$NON-NLS-1$
+		ls1.setSeriesIdentifier(Messages.getString("HeapChart.Useful_Heap")); //$NON-NLS-1$
 
 		// Y-Series
 		LineSeries ls2 = (LineSeries) LineSeriesImpl.create();
@@ -225,7 +244,22 @@ public class ChartBuilder {
 			marker.setSize(3);
 		}
 		ls2.setPaletteLineColor(true);
-		ls2.setSeriesIdentifier(Messages.getString("ChartBuilder.Extra_Heap")); //$NON-NLS-1$
+		ls2.setSeriesIdentifier(Messages.getString("HeapChart.Extra_Heap")); //$NON-NLS-1$
+		
+		// Y-Series
+		LineSeries lsS = null;
+		if (isStack) {
+			lsS = (LineSeries) LineSeriesImpl.create();
+			lsS.setDataSet(orthoValuesS);
+			lsS.getLineAttributes().setColor(ColorDefinitionImpl.CREAM());
+			for (int i = 0; i < lsS.getMarkers().size(); i++) {
+				Marker marker = (Marker) lsS.getMarkers().get(i);
+				marker.setType(MarkerType.DIAMOND_LITERAL);
+				marker.setSize(3);
+			}
+			lsS.setPaletteLineColor(true);
+			lsS.setSeriesIdentifier(Messages.getString("HeapChart.Stacks")); //$NON-NLS-1$
+		}		
 		
 		// Y-Series
 		LineSeries ls3 = (LineSeries) LineSeriesImpl.create();
@@ -237,96 +271,72 @@ public class ChartBuilder {
 			marker.setSize(3);
 		}
 		ls3.setPaletteLineColor(true);
-		ls3.setSeriesIdentifier(Messages.getString("ChartBuilder.Total_Heap")); //$NON-NLS-1$
+		ls3.setSeriesIdentifier(Messages.getString("HeapChart.Total_Heap")); //$NON-NLS-1$
 
 		SeriesDefinition sdY = SeriesDefinitionImpl.create();
 		sdY.getSeriesPalette().shift(-1);
 		yAxisPrimary.getSeriesDefinitions().add(sdY);
 		sdY.getSeries().add(ls1);
 		sdY.getSeries().add(ls2);
+		if (isStack) {
+			sdY.getSeries().add(lsS);
+		}
 		sdY.getSeries().add(ls3);
-		
+
 		// Z-Series
 		SeriesDefinition sdZ = SeriesDefinitionImpl.create();
 		zAxis.getSeriesDefinitions().add(sdZ);
-
-		//		// Rotate the chart
-		//		cwa3DLine.setRotation(Rotation3DImpl.create(new Angle3D[] { Angle3DImpl
-		//				.create(-10, 25, 0) }));
-
-		return cwaLine;
 	}
 
-	private static String getScaledUnit(TimeUnit unit, int scaling) {
-		String name;
-		int ix = scaling;
-		switch (unit) {
-		case BYTES:
-			name = byteUnits[ix];
-			break;
-		case INSTRUCTIONS:
-			name = instrUnits[ix];
-			break;
-		default:
-			name = secondUnits[ix];
-			break;
-		}
-		return name;
+	private boolean isStackProfiled(MassifSnapshot[] snapshots) {
+		return getMaxStack(snapshots) > 0;
 	}
 
-	private static int getMultiplier(TimeUnit unit) {
-		int mult;
-		switch (unit) {
-		case BYTES:
-			mult = BYTE_MULT;
-			break;
-		case INSTRUCTIONS:
-			mult = INSTR_MULT;
-			break;
-		default:
-			mult = MS_MULT;
-			break;
-		}
-		return mult;
-	}
-
-	private static int getYScaling(MassifSnapshot[] snapshots) {
+	private long getYScaling(MassifSnapshot[] snapshots) {
 		long max = getMaxValue(snapshots);
-		
+
 		int count = 0;
 		while (max > BYTE_MULT * SCALING_THRESHOLD && count < BYTE_LIMIT) {
 			max /= BYTE_MULT;
 			count++;
 		}
-		
-		return count;
+
+		yUnits = byteUnits[count];
+
+		return (long) Math.pow(BYTE_MULT, count);
 	}
 
-	private static int getXScaling(MassifSnapshot[] snapshots, TimeUnit unit) {
+	private long getXScaling(MassifSnapshot[] snapshots, TimeUnit unit) {
 		long max = snapshots[snapshots.length - 1].getTime();
 		int mult, limit;
+		String[] units;
 		switch (unit) {
 		case BYTES:
 			mult = BYTE_MULT;
 			limit = BYTE_LIMIT;
+			units = byteUnits;
 			break;
 		case INSTRUCTIONS:
 			mult = INSTR_MULT;
 			limit = INSTR_LIMIT;
+			units = instrUnits;
 			break;
 		default:
 			mult = MS_MULT;
-			limit = MS_LIMIT;
-			break;
+		limit = MS_LIMIT;
+		units = secondUnits;
+		break;
 		}
-		
+
 		int count = 0;
 		while (max > mult * SCALING_THRESHOLD && count < limit) {
 			max /= mult;
 			count++;
 		}
-		
-		return count;
+
+		xUnits = units[count];
+
+		return (long) Math.pow(mult, count);
 	}
 
 	private static long getMaxValue(MassifSnapshot[] snapshots) {
@@ -337,6 +347,36 @@ public class ChartBuilder {
 			}
 		}
 		return max;
+	}
+
+	private static long getMaxStack(MassifSnapshot[] snapshots) {
+		long max = 0;
+		for (MassifSnapshot snapshot : snapshots) {
+			if (snapshot.getTotal() > max) {
+				max = snapshot.getStacks();
+			}
+		}
+		return max;
+	}
+
+	public String getXUnits() {
+		return xUnits;
+	}
+
+	public String getYUnits() {
+		return yUnits;
+	}
+
+	public static String[] getByteUnits() {
+		return byteUnits;
+	}
+
+	public static String[] getInstrUnits() {
+		return instrUnits;
+	}
+
+	public static String[] getSecondUnits() {
+		return secondUnits;
 	}
 
 }
