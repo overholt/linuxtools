@@ -1,0 +1,12 @@
+2009-01-22  Elliott Baron  <ebaron@redhat.com>
+
+	* CachegrindViewPart: Added sorting to TreeViewer, full event names
+	to tooltip, improvements to LabelProvider for C++, double-click event
+	spawing editor on file, function or line.
+	* ICachegrindElement: Extend Comparable<T> for sorting by first column.
+	* CachegrindFile: Likewise, added getName().
+	* CachegrindLine: Likewise.
+	* CachegrindOutput: Likewise.
+	* CachegrindFunction: Likewise, vastly improved handling of CModel
+	with C++ classes.
+	* META-INF/MANIFEST.MF: New dependency org.eclipse.cdt.core.model.util.
