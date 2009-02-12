@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.linuxtools.valgrind.ui" xmlns="http://www.w3.org/2001/XMLSchema">
+<schema targetNamespace="org.eclipse.linuxtools.valgrind.launch" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="org.eclipse.linuxtools.valgrind.ui" id="org.eclipse.linuxtools.valgrind.ui.valgrindToolViews" name="valgrindToolViews"/>
+         <meta.schema plugin="org.eclipse.linuxtools.valgrind.launch" id="outputDirectoryProviders" name="Valgrind Output Directory Providers"/>
       </appinfo>
       <documentation>
-         This extension point provides an interface for creating the controls within the Valgrind &lt;code&gt;IViewPart&lt;/code&gt;.
+         This extension point allows the default location for native Valgrind output to be changed. Only one plugin implementing this extension point should be used at a time.
       </documentation>
    </annotation>
 
@@ -17,8 +17,8 @@
          </appinfo>
       </annotation>
       <complexType>
-         <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="view"/>
+         <sequence minOccurs="0" maxOccurs="1">
+            <element ref="provider"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,25 +47,22 @@
       </complexType>
    </element>
 
-   <element name="view">
+   <element name="provider">
       <complexType>
-         <attribute name="definitionId" type="string" use="required">
+         <attribute name="id" type="string" use="required">
             <annotation>
                <documentation>
-                  The &lt;code&gt;id&lt;/code&gt; of the extender of &lt;code&gt;org.eclipse.linuxtools.valgrind.launch.valgrindTools&lt;/code&gt; for which this extension provides UI
+                  The unique identifier for this provider.
                </documentation>
-               <appinfo>
-                  <meta.attribute kind="identifier" basedOn="org.eclipse.linuxtools.valgrind.launch.valgrindTools/tool/@id"/>
-               </appinfo>
             </annotation>
          </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The class that creates controls for the Valgrind &lt;code&gt;IViewPart&lt;/code&gt;
+                  A class implementing &lt;code&gt;IValgrindOutputDirectoryProvider&lt;/code&gt;.
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.valgrind.ui.IValgrindToolView"/>
+                  <meta.attribute kind="java" basedOn=":org.eclipse.linuxtools.valgrind.launch.IValgrindOutputDirectoryProvider"/>
                </appinfo>
             </annotation>
          </attribute>
@@ -77,7 +74,7 @@
          <meta.section type="since"/>
       </appinfo>
       <documentation>
-         [Enter the first release in which this extension point appears.]
+         0.2
       </documentation>
    </annotation>
 
@@ -86,7 +83,7 @@
          <meta.section type="examples"/>
       </appinfo>
       <documentation>
-         [Enter extension point usage example here.]
+         None yet.
       </documentation>
    </annotation>
 
@@ -95,7 +92,7 @@
          <meta.section type="apiinfo"/>
       </appinfo>
       <documentation>
-         [Enter API information here.]
+         Plug-ins that want to extend this extension point must implement &lt;samp&gt;org.eclipse.linuxtools.valgrind.launch.IValgrindOutputDirectoryProvider&lt;/samp&gt; interface.
       </documentation>
    </annotation>
 
@@ -104,9 +101,24 @@
          <meta.section type="implementation"/>
       </appinfo>
       <documentation>
-         [Enter information about supplied implementation of this extension point.]
+         None yet.
       </documentation>
    </annotation>
 
+   <annotation>
+      <appinfo>
+         <meta.section type="copyright"/>
+      </appinfo>
+      <documentation>
+         Copyright (c) 2009 Red Hat, Inc.
+All rights reserved. This program and the accompanying materials
+are made available under the terms of the Eclipse Public License v1.0
+which accompanies this distribution, and is available at
+http://www.eclipse.org/legal/epl-v10.html
+
+Contributors:
+ Elliott Baron &lt;ebaron@redhat.com&gt; - initial API and implementation
+      </documentation>
+   </annotation>
 
 </schema>
