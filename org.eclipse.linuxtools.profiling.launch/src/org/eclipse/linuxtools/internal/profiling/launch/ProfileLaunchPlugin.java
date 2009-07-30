@@ -8,7 +8,7 @@
  * Contributors:
  *    Elliott Baron <ebaron@redhat.com> - initial API and implementation
  *******************************************************************************/ 
-package org.eclipse.linuxtools.profiling.launch;
+package org.eclipse.linuxtools.internal.profiling.launch;
 
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -17,7 +17,7 @@ import org.osgi.framework.BundleContext;
 public class ProfileLaunchPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "org.eclipse.linuxtools.profiling.launch.launch"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "org.eclipse.linuxtools.profiling.launch"; //$NON-NLS-1$
 
 	// The shared instance
 	private static ProfileLaunchPlugin plugin;
