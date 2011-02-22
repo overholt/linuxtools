@@ -1,3 +1,7 @@
+2011-02-22  Francois Chouinard  <fchouinard@gmail.com>
+
+    * src/org/eclipse/linuxtools/lttng/ui/views/controlflow/ControlFlowView.java: Fix for Bug337859 (check for NPE) 
+
 2010-12-08  Francois Chouinard  <fchouinard@gmail.com>
 
 	* src/org/eclipse/linuxtools/lttng/ui/views/controlflow/ControlFlowView.java (makeActions): Fixed icon path
