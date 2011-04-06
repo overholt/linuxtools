@@ -1,6 +1,7 @@
 2011-04-06  Jeff Johnston  <jjohnstn@redhat.com>
 
 	* build.properties: Add data directory.
+	* plugin.xml: Fix the location to point to data directory.
 
 2011-04-04  Jeff Johnston  <jjohnstn@redhat.com>
 
