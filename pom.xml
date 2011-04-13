@@ -55,6 +55,7 @@
     <profile>
       <id>platform-helios</id>
       <activation>
+        <activeByDefault>true</activeByDefault>
         <property>
           <name>platform-version-name</name>
           <value>helios</value>
