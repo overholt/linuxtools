@@ -59,7 +59,6 @@ import org.osgi.framework.Bundle;
 
 public abstract class AbstractTest extends TestCase {
 	private static final String BIN_DIR = "Debug"; //$NON-NLS-1$
-	private static final String IMPORTED_SOURCE_FILE = "primeTest.c"; //$NON-NLS-1$
 	protected ICProject proj;
 		
 	protected ILaunchManager getLaunchManager() {
@@ -133,7 +132,7 @@ public abstract class AbstractTest extends TestCase {
 			throw new CoreException(status);
 		}
 		// Make sure import went well
-		assertNotNull(externalProject.findMember(new Path(IMPORTED_SOURCE_FILE)));
+		assertNotNull(externalProject.findMember(BIN_DIR));
 
 		// Index the project
 		IIndexManager indexMgr = CCorePlugin.getIndexManager();
