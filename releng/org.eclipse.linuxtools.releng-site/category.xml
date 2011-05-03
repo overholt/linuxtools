@@ -48,9 +48,11 @@
    <feature url="features/org.eclipse.linuxtools.valgrind_0.0.0.qualifier.jar" id="org.eclipse.linuxtools.valgrind" version="0.0.0">
       <category name="Linux Tools"/>
    </feature>
+   <!--
    <feature url="features/org.eclipse.linuxtools.lttng_0.0.0.qualifier.jar" id="org.eclipse.linuxtools.lttng" version="0.0.0" os="linux">
       <category name="Linux Tools"/>
    </feature>
+   -->
    <feature url="features/org.eclipse.linuxtools.gcov_0.0.0.qualifier.jar" id="org.eclipse.linuxtools.gcov" version="0.0.0">
       <category name="Linux Tools"/>
    </feature>
